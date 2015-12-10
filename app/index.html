@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>NOS Products Search</title>
+    <meta name="description" content="Search for products associated with surveys conducted by NOAA's National Ocean Service and archived at the National Centers for Environmental Information">
+    <meta name="viewport" content="width=device-width">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(.) styles/vendor.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- endbuild -->
+    <link rel="stylesheet" type="text/css" href="http://js.arcgis.com/3.14/esri/css/esri.css">
+
+</head>
+<body ng-app="nosProductsApp">
+<!--[if lte IE 8]>
+<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
+    your browser</a> to improve your experience.</p>
+<![endif]-->
+
+<!-- Add your site or application content here -->
+<div class="header">
+    <table class="layout" style="width: 100%">
+        <tr class="layout">
+            <td class="layout">
+                <a href="//ngdc.noaa.gov/" title="go to NGDC home"><img class="pull-left" src="https://www.ngdc.noaa.gov/image/nesdisngdcleft.gif" alt="National Geophysical Data Center (NGDC), NOAA Satellite and Information Service" border="0"/></a>
+                <img class="pull-right" src="https://www.ngdc.noaa.gov/mgg/image/nosright.gif" alt="Office of Coast Survey, NOAA National Ocean Service" border="0"/>
+            </td>
+
+        </tr>
+        <tr class="layout">
+            <td class="layout" style="padding-left:10px; background-color: #eeeeee; font-size:x-small;">
+                <div id="breadcrumbs" class="pull-left">
+                    <a href="//www.noaa.gov/" title="National Oceanic &amp; Atmospheric Administration">NOAA</a> &gt;
+                    <a href="//www.nesdis.noaa.gov/" title="NOAA Satellite &amp; Information Service">NESDIS</a> &gt;
+                    <a href="//www.ngdc.noaa.gov" title="go to the National Centers for Environmental Information (formerly the National Geophysical Data Center) home">NCEI (formerly NGDC)</a> &gt;
+                    <a href="/mgg/mggd.html" title="go to Marine Geology and Geophysics Data">Marine Geology and Geophysics</a> &gt;
+                    <a href="//www.ngdc.noaa.gov/mgg/bathymetry/relief.html" title="go to bathymetry, topography, and relief">Bathymetry &amp; Relief</a>
+                </div>
+                <div id="privacy" class="pull-right" style="padding-right: 10px;">
+                    <a href="//www.ngdc.noaa.gov/ngdcinfo/privacy.html" class="topnav" title="go to important notices, disclaimers, and privacy policy">privacy policy</a>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="container" ng-controller="MainCtrl">
+    <esri-map id="map" map-options="map.options" load="onMapLoad">
+    </esri-map>
+    <div>
+        Position: longitude {{mouseposition.x | number:3}}, latitude {{mouseposition.y | number:3}}
+    </div>
+
+    <hr>
+
+    <div>
+        <form name="myForm">
+            <label for="aoiInput">Area of Interest:</label>
+            <input type="text" readonly value="{{bbox}}" size="30" /><button ng-click="activateDrawTool('Extent')">Draw Rectangle</button>
+
+            <br><br>
+            <label for="formatSelect"> Product Format: </label>
+            <select name="formatSelect" id="formatSelect" ng-model="formatSelect">
+                <option ng-repeat="option in formats" value="{{option.ID}}">{{option.NAME}}</option>
+            </select>
+
+            <br>
+            <br>
+            <label for="dateInput">Products published since:</label>
+            <input type="date" id="dateInput" name="input" ng-model="dateInput"
+                   placeholder="yyyy-MM-dd" min="1970-01-01" max="2016-12-31" />
+            <div role="alert">
+                <span class="error" ng-show="myForm.input.$error.date">Not a valid date!</span>
+            </div>
+
+            <br>
+            <label for="surveyInput">Products associated with Survey:</label>
+            <input class="typeahead" type="text" placeholder="Survey" ng-value="survey">
+        </form>
+
+        <div class="btn btn-lg btn-success" style="margin: 20px;" ng-click="updateResults()" ng-show="myForm.$valid">Find Products</div>
+        <div class="btn btn-lg" style="margin: 20px;" ng-click="resetForm()">Reset</div>
+    </div>
+    <div>
+        <span id="message">{{message}}</span>
+    </div>
+    <div>
+        <!--
+         <ul class="example-animate-container">
+             <li class="animate-repeat" ng-repeat="result in results">
+                 Survey: {{result.SURVEY}} <a href="{{result.URL}}" target="_blank">{{result.FORMAT}}</a>
+             </li>
+             <li class="animate-repeat" ng-if="results.length == 0">
+                 <strong>No results found...</strong>
+             </li>
+         </ul>
+         -->
+        <table ng-show="results">
+            <tr>
+                <th>Survey</th><th>Publish Date</th><th>Product</th>
+            </tr>
+            <tr class="animate-repeat" ng-repeat="result in results">
+                <td>{{result.SURVEY}}</td><td>{{result.PUBLISH_DATE}}</td><td><a href="{{result.URL}}" target="_blank">{{result.FORMAT}}</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="footer">
+    <div class="container">
+        <div class="pull-right" style="padding-right: 10px; font-size: x-small">
+            Questions: <a href="mailto:hydro.info@noaa.gov?subject=RE: NOS Products Search" title="ask questions about data on this Web page"> hydro.info@noaa.gov</a>
+        </div>
+    </div>
+</div>
+
+<script defer type="text/javascript" src="http://js.arcgis.com/3.14compact"></script>
+<!-- build:js(.) scripts/vendor.js -->
+<!-- bower:js -->
+<script src="bower_components/jquery/dist/jquery.js"></script>
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+<script src="bower_components/angular-animate/angular-animate.js"></script>
+<script src="bower_components/angular-cookies/angular-cookies.js"></script>
+<script src="bower_components/angular-resource/angular-resource.js"></script>
+<script src="bower_components/angular-route/angular-route.js"></script>
+<script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+<script src="bower_components/angular-touch/angular-touch.js"></script>
+<script src="bower_components/angular-esri-map/dist/angular-esri-map.js"></script>
+<script src="bower_components/handlebars/handlebars.js"></script>
+<script src="bower_components/typeahead.js/dist/typeahead.bundle.js"></script>
+<!-- endbower -->
+<!-- endbuild -->
+
+<!-- build:js({.tmp,app}) scripts/scripts.js -->
+<script src="scripts/app.js"></script>
+<script src="scripts/controllers/main.js"></script>
+
+<!-- endbuild -->
+</body>
+</html>

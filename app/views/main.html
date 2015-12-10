@@ -1,0 +1,60 @@
+    <esri-map id="map" map-options="map.options" load="onMapLoad">
+    </esri-map>
+    <div>
+        Position: longitude {{mouseposition.x | number:3}}, latitude {{mouseposition.y | number:3}}
+    </div>
+
+    <hr>
+
+    <div>
+        <form name="myForm">
+            <label for="aoiInput">Area of Interest:</label>
+            <input type="text" readonly value="{{bbox}}" size="30" /><button ng-click="activateDrawTool('Extent')">Draw Rectangle</button>
+
+            <br><br>
+            <label for="formatSelect"> Product Format: </label>
+            <select name="formatSelect" id="formatSelect" ng-model="formatSelect">
+                <option ng-repeat="option in formats" value="{{option.ID}}">{{option.NAME}}</option>
+            </select>
+
+            <br>
+            <br>
+            <label for="dateInput">Products published since:</label>
+            <input type="date" id="dateInput" name="input" ng-model="dateInput"
+               placeholder="yyyy-MM-dd" min="1970-01-01" max="2016-12-31" />
+            <div role="alert">
+                <span class="error" ng-show="myForm.input.$error.date">Not a valid date!</span>
+            </div>
+
+            <br>
+            <label for="surveyInput">Products associated with Survey:</label>
+            <input class="typeahead" type="text" placeholder="Survey" ng-value="survey">
+        </form>
+
+        <div class="btn btn-lg btn-success" style="margin: 20px;" ng-click="updateResults()" ng-show="myForm.$valid">Find Products</div>
+        <div class="btn btn-lg" style="margin: 20px;" ng-click="resetForm()">Reset</div>
+    </div>
+    <div>
+        <span id="message">{{message}}</span>
+    </div>
+    <div>
+       <!--
+        <ul class="example-animate-container">
+            <li class="animate-repeat" ng-repeat="result in results">
+                Survey: {{result.SURVEY}} <a href="{{result.URL}}" target="_blank">{{result.FORMAT}}</a>
+            </li>
+            <li class="animate-repeat" ng-if="results.length == 0">
+                <strong>No results found...</strong>
+            </li>
+        </ul>
+        -->
+        <table ng-show="results">
+            <tr>
+                <th>Survey</th><th>Publish Date</th><th>Product</th>
+            </tr>
+            <tr class="animate-repeat" ng-repeat="result in results">
+                <td>{{result.SURVEY}}</td><td>{{result.PUBLISH_DATE}}</td><td><a href="{{result.URL}}" target="_blank">{{result.FORMAT}}</a></td>
+            </tr>
+        </table>
+    </div>
+
